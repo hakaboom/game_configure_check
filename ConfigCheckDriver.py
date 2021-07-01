@@ -2,7 +2,7 @@
 """ 用于执行检测 """
 from XlsReader import XlsReader
 from utils import pprint
-from ConfigCheckerXlsx import check_null, check_regex
+from ConfigCheckerXlsx import check_null, check_regex, check_range
 
 checklist_name = 'checkList.xls'
 
@@ -43,4 +43,6 @@ class CheckList(XlsReader):
                 ret = check_null(check_list, xlsReader=xlsReader_table)
             elif action == 'check_regex':
                 ret = check_regex(check_list, xlsReader=xlsReader_table, regex=args)
+            elif action == 'check_range':
+                ret = check_range(check_list, xlsReader=xlsReader_table, rule=args)
 

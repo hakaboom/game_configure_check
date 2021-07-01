@@ -25,12 +25,12 @@ def xls_float_correct(num):
     s = str(num)
     s_split = s.split('.')
     if len(s_split) == 1:  # s = '1'
-        return num
+        return int(num)
     elif len(s_split) == 2:  # s = '1.0'
         if int(s_split[1]) == 0:
             return int(s_split[0])
         else:
-            return num
+            return float(num)
     else:
         raise ValueError('传入值错误 num={}'.format(num))
 
