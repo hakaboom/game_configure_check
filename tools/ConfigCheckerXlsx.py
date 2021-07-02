@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from XlsReader import XlsReader
+from .XlsReader import XlsReader
 from utils import ncol_2_column, xls_float_correct
 from loguru import logger
 

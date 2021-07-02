@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """ 用于执行检测 """
-from XlsReader import XlsReader
+from .XlsReader import XlsReader
 from utils import pprint
-from ConfigCheckerXlsx import check_null, check_regex, check_range
+from .ConfigCheckerXlsx import check_null, check_regex, check_range
 from collections import OrderedDict
 checklist_name = 'checkList.xls'
 
