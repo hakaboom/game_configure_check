@@ -3,7 +3,7 @@
 from XlsReader import XlsReader
 from utils import pprint
 from ConfigCheckerXlsx import check_null, check_regex, check_range
-
+from collections import OrderedDict
 checklist_name = 'checkList.xls'
 
 
@@ -19,6 +19,8 @@ class CheckList(XlsReader):
                                                   )]
 
     def run(self):
+        ret_list = []
+
         for index in self.check_list:
             table_name, table_column, action, args = index
 
@@ -45,4 +47,11 @@ class CheckList(XlsReader):
                 ret = check_regex(check_list, xlsReader=xlsReader_table, regex=args)
             elif action == 'check_range':
                 ret = check_range(check_list, xlsReader=xlsReader_table, rule=args)
+            else:
+                raise ValueError('未知action参数 action={}'.format(action))
+
+            if ret:
+                ret_list.append((table_name, ret))
+
+        return ret_list
 

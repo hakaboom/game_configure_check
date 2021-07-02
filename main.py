@@ -8,4 +8,10 @@ from utils import ncol_2_column
 
 #
 a = CheckList()
-a.run()
+# a.run()
+
+s = '13,1,5'
+# p = re.compile('^((\d+,)(\d+)+\|?)+(?<=\d)$')
+p = re.compile('^((\d+,)+(\d+))+(?<=\d)$')
+
+print(p.search(s))

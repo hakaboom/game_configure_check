@@ -3,7 +3,7 @@
 import xlrd
 from utils import handle_xls_type
 
-xls_path = "./table"
+xls_path = ".\\table"
 
 
 class XlsReader(object):
