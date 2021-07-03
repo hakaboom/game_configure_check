@@ -20,8 +20,9 @@ def check_null(check_dict: dict, xlsReader: XlsReader):
         for key, value in enumerate(col_list):
             if value is None:
                 row_number = key + 1 + xlsReader.ignore_lines
-                err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为空".format(
-                    xls_name=xlsReader.xls_name, name=name, col=ncol_2_column(col_number), row=row_number)
+                # err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为空".format(
+                #     xls_name=xlsReader.xls_name, name=name, col=ncol_2_column(col_number), row=row_number)
+                err_message = "'第{col}列,第{row}行值为空".format(col=ncol_2_column(col_number), row=row_number)
                 logger.error(err_message)
                 ret_list.append(generate_result(column_name=name, row=key, message=err_message))
     return ret_list
@@ -44,8 +45,11 @@ def check_regex(check_dict: dict, xlsReader: XlsReader, regex):
             pattern = re.compile(regex)
             if pattern.search(str(value)) is None:
                 row_number = key + 1 + xlsReader.ignore_lines
-                err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为'{value}'  不符合要求".format(
-                    xls_name=xlsReader.xls_name, name=name,
+                # err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为'{value}' 不符合要求".format(
+                #     xls_name=xlsReader.xls_name, name=name,
+                #     col=ncol_2_column(col_number), row=row_number,
+                #     value=value)
+                err_message = "'第{col}列,第{row}行值为'{value}' 不符合要求".format(
                     col=ncol_2_column(col_number), row=row_number,
                     value=value)
                 logger.error(err_message)
@@ -69,13 +73,19 @@ def check_range(check_dict: dict, xlsReader: XlsReader, rule):
                 row_number = key + 1 + xlsReader.ignore_lines
                 err_message = ''
                 if num < min_num:
-                    err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为{value} 小于最低要求{min_num}".format(
-                        xls_name=xlsReader.xls_name, name=name,
+                    # err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为{value} 小于最低要求{min_num}".format(
+                    #     xls_name=xlsReader.xls_name, name=name,
+                    #     col=ncol_2_column(col_number), row=row_number,
+                    #     value=value, min_num=min_num)
+                    err_message = "'第{col}列,第{row}行值为{value} 小于最低要求{min_num}".format(
                         col=ncol_2_column(col_number), row=row_number,
                         value=value, min_num=min_num)
                 elif num > max_num:
-                    err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为{value} 大于最大要求{max_num}".format(
-                        xls_name=xlsReader.xls_name, name=name,
+                    # err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为{value} 大于最大要求{max_num}".format(
+                    #     xls_name=xlsReader.xls_name, name=name,
+                    #     col=ncol_2_column(col_number), row=row_number,
+                    #     value=value, max_num=max_num)
+                    err_message = "'第{col}列,第{row}行值为{value} 大于最大要求{max_num}".format(
                         col=ncol_2_column(col_number), row=row_number,
                         value=value, max_num=max_num)
 

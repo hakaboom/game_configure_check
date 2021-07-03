@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """ 用于读取表格数据 """
+import os
 import xlrd
 from utils import handle_xls_type
 
-xls_path = "./table"
+xls_path = os.path.realpath('table')
 
 
 class XlsReader(object):
@@ -11,9 +12,10 @@ class XlsReader(object):
         self.path = xls_path
         self.xls_name = xls_name
         self.ignore_lines = 5  # 获取数据时,跳过不会读取的行
-        self.xl = xlrd.open_workbook(self.path+"\\"+self.xls_name)
+        self.xl = xlrd.open_workbook(os.path.join(xls_path, xls_name))
         self.sheet = self.xl.sheet_by_index(0)
         self.end_tag_index = self.sheet.nrows
+        self.set_end_tag_index()
 
     @handle_xls_type
     def get_row_list(self, rowx: int, start_colx: int = 0, end_colx: int = None) -> list:
@@ -67,6 +69,10 @@ class XlsReader(object):
 
     def get_end_tag_index(self):
         """ 数据表中第一列的最后一行都有 #END_TAG#, 获取时要舍弃这一行的数据 """
-        firest_col = self.get_col_list(1, end_rowx=self.sheet.nrows)
-        end_tag_index = firest_col.index('#END_TAG#')
-        return end_tag_index
+        try:
+            firest_col = self.get_col_list(1, end_rowx=self.sheet.nrows)
+            end_tag_index = firest_col.index('#END_TAG#')
+        except ValueError:
+            return self.sheet.nrows
+        else:
+            return end_tag_index
