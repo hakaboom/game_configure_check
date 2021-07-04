@@ -1,6 +1,5 @@
 from tools.XlsReader import XlsReader
 from tools.ConfigCheckerXlsx import check_null
-import pytest
 import allure
 
 
@@ -19,7 +18,7 @@ class TestClass(object):
 
     @allure.story("是否有空值")
     @allure.title('systemTrainFlightMod')
-    def test_systemTrainFlightModId(self):
+    def test_systemTrainFlightModId(self, a):
         """ 对systemTrainFlightModId 进行 check_null """
         with allure.step('Step1: 读取表格对应列'):
             check_list = self.list.get_col_list_by_name('systemTrainFlightModId')
@@ -49,3 +48,5 @@ class TestClass(object):
         text = ''.join([value.get('message') for value in ret])
         print(text)
         assert not ret
+
+
