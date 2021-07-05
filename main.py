@@ -6,7 +6,7 @@ from setting import REPORT_PATH, REPORT_NAME
 """ 
 pytest {test目录} --alluredir {导出的目录}
 allure generate {pytest生成的alluredir} -o {导出的目录}
-allure open {导出的目录}
+allure open {导出的目录} 
 """
 #
 a = CheckList()
