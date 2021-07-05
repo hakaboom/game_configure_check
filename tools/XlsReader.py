@@ -7,8 +7,8 @@ from setting import WORK_PATH
 
 
 class XlsReader(object):
-    def __init__(self, xls_name):
-        self.path = WORK_PATH
+    def __init__(self, xls_name, path=WORK_PATH):
+        self.path = path
         self.xls_name = xls_name
         self.ignore_lines = 5  # 获取数据时,跳过不会读取的行
 

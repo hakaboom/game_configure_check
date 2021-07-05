@@ -3,12 +3,12 @@
 from .XlsReader import XlsReader
 from utils import generate_result
 from .ConfigCheckerXlsx import check_null, check_regex, check_range, check_reference
-from setting import CHECKLIST_NAME
+from setting import CHECKLIST_NAME, CHECKLIST_PATH
 
 
 class CheckList(XlsReader):
     def __init__(self):
-        super(CheckList, self).__init__(xls_name=CHECKLIST_NAME)
+        super(CheckList, self).__init__(xls_name=CHECKLIST_NAME, path=CHECKLIST_PATH)
         self.ignore_lines = 2
         # [(table_name, table_column, action, args),...]
         self.check_list = [value for value in zip(self.get_col_list_by_name('table_name'),
