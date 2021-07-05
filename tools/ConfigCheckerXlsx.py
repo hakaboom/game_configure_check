@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
 from .XlsReader import XlsReader
-from utils import ncol_2_column, xls_float_correct
+from utils import ncol_2_column, xls_float_correct, generate_result
 from loguru import logger
-
-
-def generate_result(column_name, row, message):
-    return dict(
-        message=message,
-    )
 
 
 def check_null(check_dict: dict, xlsReader: XlsReader):
@@ -20,11 +14,10 @@ def check_null(check_dict: dict, xlsReader: XlsReader):
         for key, value in enumerate(col_list):
             if value is None:
                 row_number = key + 1 + xlsReader.ignore_lines
-                # err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为空".format(
-                #     xls_name=xlsReader.xls_name, name=name, col=ncol_2_column(col_number), row=row_number)
-                err_message = "'第{col}列,第{row}行值为空".format(col=ncol_2_column(col_number), row=row_number)
+                # err_message = "'第{col}列,第{row}行值为空".format(col=ncol_2_column(col_number), row=row_number)
+                err_message = "值为空".format(col=ncol_2_column(col_number), row=row_number)
                 logger.error(err_message)
-                ret_list.append(generate_result(column_name=name, row=key, message=err_message))
+                ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
     return ret_list
 
 
@@ -45,21 +38,15 @@ def check_regex(check_dict: dict, xlsReader: XlsReader, regex):
             pattern = re.compile(regex)
             if pattern.search(str(value)) is None:
                 row_number = key + 1 + xlsReader.ignore_lines
-                # err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为'{value}' 不符合要求".format(
-                #     xls_name=xlsReader.xls_name, name=name,
-                #     col=ncol_2_column(col_number), row=row_number,
-                #     value=value)
-                err_message = "第{col}列,第{row}行值为'{value}' 不符合要求".format(
-                    col=ncol_2_column(col_number), row=row_number,
-                    value=value)
+                err_message = "格式不符合规则"
                 logger.error(err_message)
-                ret_list.append(generate_result(column_name=name, row=key, message=err_message))
+                ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
     return ret_list
 
 
 def check_range(check_dict: dict, xlsReader: XlsReader, rule):
     ret_list = []
-    rule = re.compile('^((-?)\d+\.?\d+)[\s\S]''((-?)\d+\.?\d+)$').findall(rule)
+    rule = re.compile("^((-?)\d+\.?\d+)[\s\S]((-?)\d+\.?\d+)$").findall(rule)
     if not rule:
         raise ValueError('rule错误无法解析 value={}'.format(rule))
 
@@ -71,25 +58,42 @@ def check_range(check_dict: dict, xlsReader: XlsReader, rule):
             if value:
                 num = xls_float_correct(value)
                 row_number = key + 1 + xlsReader.ignore_lines
-                err_message = ''
                 if num < min_num:
-                    # err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为{value} 小于最低要求{min_num}".format(
-                    #     xls_name=xlsReader.xls_name, name=name,
-                    #     col=ncol_2_column(col_number), row=row_number,
-                    #     value=value, min_num=min_num)
-                    err_message = "第{col}列,第{row}行值为{value} 小于最低要求{min_num}".format(
-                        col=ncol_2_column(col_number), row=row_number,
-                        value=value, min_num=min_num)
+                    err_message = "小于最低要求{min_num}".format(value=value, min_num=min_num)
+                    logger.error(err_message)
+                    ret_list.append(generate_result(column_name=name, row=row_number, message=err_message))
                 elif num > max_num:
-                    # err_message = "'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为{value} 大于最大要求{max_num}".format(
-                    #     xls_name=xlsReader.xls_name, name=name,
-                    #     col=ncol_2_column(col_number), row=row_number,
-                    #     value=value, max_num=max_num)
-                    err_message = "第{col}列,第{row}行值为{value} 大于最大要求{max_num}".format(
-                        col=ncol_2_column(col_number), row=row_number,
-                        value=value, max_num=max_num)
+                    err_message = "大于最大要求{max_num}".format(value=value, max_num=max_num)
+                    logger.error(err_message)
+                    ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
 
+    return ret_list
+
+
+def check_reference(check_dict: dict, xlsReader: XlsReader, rule):
+    """ 根据规则检查索引 """
+    ret_list = []
+    rule = re.compile("^([\s\S]+);([\s\S]+)$").findall(rule)
+    if not rule:
+        raise ValueError('rule错误无法解析 value={}'.format(rule))
+
+    """
+        target_table_name: 需要索引到的表名
+        target_name: 需要索引到的列名
+    """
+    target_table_name, target_name = rule[0][0], rule[0][1]
+    target_table = XlsReader(target_table_name)
+    target_list = target_table.get_col_list_by_name(target_name)
+    target_list = [str(v) for v in target_list]
+    for name, col_list in check_dict.items():
+        col_number = xlsReader.get_col_number_by_name(name)
+        for key, value in enumerate(col_list):
+            row_number = key + 1 + xlsReader.ignore_lines
+            if not (str(value) in target_list):
+                err_message = "未能在{target_xls_name}的{target_name}列找到值".format(
+                    value=value, target_xls_name=target_table.xls_name, target_name=target_name
+                )
                 logger.error(err_message)
-                ret_list.append(generate_result(column_name=name, row=key, message=err_message))
+                ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
 
     return ret_list

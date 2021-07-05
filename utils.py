@@ -1,6 +1,14 @@
 import re
 
 
+def generate_result(column_name=None, row=None, value=None, message=""):
+    return dict(
+        value=value,
+        row=row,
+        message=message,
+    )
+
+
 def handle_xls_type(func):
     """ 处理表内数据格式"""
     def wrapper(self, *args, **kwargs):
@@ -85,6 +93,47 @@ def _print(args, SpaceNum=1):
         for key, value in args.items():
             _str.append('{space}[{key}]({type}) = {value}'.format(key=key, value=_print(value,SpaceNum),
                                                                   type=get_type(value), space=get_space(SpaceNum)))
+    else:
+        _str.append(str(args))
+
+    return '\n'.join(_str)
+
+
+def decode_check_list_ret(ret):
+    return_list = []
+    for v in ret:
+        if v and isinstance(v, (tuple, list)):
+            table_name = v[0]
+            message_list = v[1]
+            s = check_list_ret_decode({table_name: [value.get('message') for value in message_list]})
+            return_list.append(s)
+
+    return return_list
+
+
+def check_list_ret_decode(*args):
+    _str = []
+    for index, value in enumerate(args):
+        if isinstance(value, (dict, tuple, list)):
+            _str.append('{value}'.format(value=_check_list_ret_decode(value)))
+        else:
+            _str.append('{value}'.format(value=value))
+    return ''.join(_str)
+
+
+def _check_list_ret_decode(args, SpaceNum=0):
+    _str = []
+    SpaceNum += 1
+    if isinstance(args, (tuple, list)):
+        _str.append('')
+        for index, value in enumerate(args):
+            _str.append('{space}{value}'.format(value=_check_list_ret_decode(value, SpaceNum),
+                                                space=get_space(SpaceNum)))
+    elif isinstance(args, dict):
+        _str.append('')
+        for key, value in args.items():
+            _str.append('{key}: {space}{value}'.format(key=key, value=_check_list_ret_decode(value, SpaceNum),
+                                                       space=get_space(SpaceNum)))
     else:
         _str.append(str(args))
 

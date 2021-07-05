@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """ 用于读取表格数据 """
 import os
-import xlrd
+from xlrd import open_workbook
 from utils import handle_xls_type
-
-xls_path = os.path.realpath('table')
+from setting import WORK_PATH
 
 
 class XlsReader(object):
     def __init__(self, xls_name):
-        self.path = xls_path
+        self.path = WORK_PATH
         self.xls_name = xls_name
         self.ignore_lines = 5  # 获取数据时,跳过不会读取的行
-        self.xl = xlrd.open_workbook(os.path.join(xls_path, xls_name))
+
+        self.xl = open_workbook(os.path.join(self.path, xls_name))
         self.sheet = self.xl.sheet_by_index(0)
         self.end_tag_index = self.sheet.nrows
         self.set_end_tag_index()
@@ -29,15 +29,15 @@ class XlsReader(object):
         return self.sheet.row_values(rowx - 1, start_colx, end_colx)
 
     @handle_xls_type
-    def get_col_list(self, clox: int, start_rowx: int = 0, end_rowx: int = None) -> list:
+    def get_col_list(self, colx: int, start_rowx: int = 0, end_rowx: int = None) -> list:
         """
         获取表格内某一列的数据
-        :param clox: 在表格中的列数
+        :param colx: 在表格中的列数
         :param start_rowx: 左切片
         :param end_rowx: 右切片
         :return: 这一列的全部数据
         """
-        return self.sheet.col_values(clox-1, start_rowx, end_rowx or self.end_tag_index)
+        return self.sheet.col_values(colx - 1, start_rowx, end_rowx or self.end_tag_index)
 
     def get_cell_value(self, row_index: int, column_index: int):
         """

@@ -1,22 +1,35 @@
 # -*- coding: utf-8 -*-
 """ 用于执行检测 """
 from .XlsReader import XlsReader
-from utils import pprint
-from .ConfigCheckerXlsx import check_null, check_regex, check_range
-from collections import OrderedDict
-checklist_name = 'checkList.xls'
+from utils import generate_result
+from .ConfigCheckerXlsx import check_null, check_regex, check_range, check_reference
+from setting import CHECKLIST_NAME
 
 
 class CheckList(XlsReader):
     def __init__(self):
-        super(CheckList, self).__init__(xls_name=checklist_name)
-        self.ignore_lines = 1
+        super(CheckList, self).__init__(xls_name=CHECKLIST_NAME)
+        self.ignore_lines = 2
         # [(table_name, table_column, action, args),...]
         self.check_list = [value for value in zip(self.get_col_list_by_name('table_name'),
                                                   self.get_col_list_by_name('table_column'),
                                                   self.get_col_list_by_name('action'),
                                                   self.get_col_list_by_name('args')
                                                   )]
+
+    def action_run(self, action, check_list, xlsReader, args=None):
+        if action == 'check_null':
+            ret = check_null(check_list, xlsReader=xlsReader)
+        elif action == 'check_regex':
+            ret = check_regex(check_list, xlsReader=xlsReader, regex=args)
+        elif action == 'check_range':
+            ret = check_range(check_list, xlsReader=xlsReader, rule=args)
+        elif action == 'check_reference':
+            ret = check_reference(check_list, xlsReader=xlsReader, rule=args)
+        else:
+            raise ValueError('未知action参数 action={}'.format(action))
+
+        return ret
 
     def run(self):
         ret_list = []
@@ -41,17 +54,14 @@ class CheckList(XlsReader):
             elif table_column in column_name_list:
                 check_list[table_column] = xlsReader_table.get_col_list_by_name(table_column)
 
-            if action == 'check_null':
-                ret = check_null(check_list, xlsReader=xlsReader_table)
-            elif action == 'check_regex':
-                ret = check_regex(check_list, xlsReader=xlsReader_table, regex=args)
-            elif action == 'check_range':
-                ret = check_range(check_list, xlsReader=xlsReader_table, rule=args)
-            else:
-                raise ValueError('未知action参数 action={}'.format(action))
+            try:
+                ret = self.action_run(action, check_list=check_list, xlsReader=xlsReader_table, args=args)
+            except ValueError as err:
+                ret = [generate_result(message=err)]
 
             if ret:
-                ret_list.append((table_name, ret))
+                ret_list.append([table_name, ret])
 
         return ret_list
+
 

@@ -18,7 +18,7 @@ class TestClass(object):
 
     @allure.story("是否有空值")
     @allure.title('systemTrainFlightMod')
-    def test_systemTrainFlightModId(self, a):
+    def test_systemTrainFlightModId(self):
         """ 对systemTrainFlightModId 进行 check_null """
         with allure.step('Step1: 读取表格对应列'):
             check_list = self.list.get_col_list_by_name('systemTrainFlightModId')
