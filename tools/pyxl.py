@@ -71,11 +71,11 @@ class Pyxl(object):
 
     def get_col_list_by_name(self, name: str) -> list:
         head_list = self.get_row_value_list(self.ignore_lines)
-        index = head_list.index(name) + 1if name in head_list else None
+        index = head_list.index(name) + 1 if name in head_list else None
         if index:
             return self.get_col_value_list(index)[self.ignore_lines:]
         else:
-            raise ValueError('{xlsName}没有{name}列'.format(xlsName=self.xls_name, name=name))
+            raise OverflowError('{xlsName}没有{name}列'.format(xlsName=self.xls_name, name=name))
 
     def get_col_number_by_name(self, name: str) -> int:
         head_list = self.get_row_value_list(self.ignore_lines)
@@ -83,25 +83,30 @@ class Pyxl(object):
         if index:
             return index
         else:
-            raise ValueError('{xlsName}没有{name}列'.format(xlsName=self.xls_name, name=name))
+            raise OverflowError('{xlsName}没有{name}列'.format(xlsName=self.xls_name, name=name))
 
-    def write_value_in_cell(self, value, row_index: int, column_index: int):
+    def write_value_in_cell(self, value, row_index: int, column_index: int, style=None):
         """
         写入数据到指定的单元格上
         :param value: 需要填入的数据
         :param row_index:  在表格中的行数
         :param column_index: 在表格中的列数
+        :param style: 自定义style
         :return: None
         """
         cell = self.get_cell(row_index, column_index)
         cell.value = value
 
-    def write_value_to_col(self, value, colx: int = None, start_row: int = None):
+        if style:
+            cell.style = style
+
+    def write_value_to_col(self, value, colx: int = None, start_row: int = None, style=None):
         """
         写入数据到指定列上
         :param value: 需要填入的数据
         :param colx: 在表格中的列数
         :param start_row: 初始的索引
+        :param style: 自定义style
         :return: Nones
         """
         if not isinstance(value, (list, tuple)):
@@ -113,11 +118,15 @@ class Pyxl(object):
             cell.value = v
             start_row += 1
 
+            if style:
+                cell.style = style
+
     def write_value_to_row(self, value, rowx: int = None, start_col: int = None, style=None):
         """
         写入数据到指定行上
         :param value: 需要填入的数据
         :param rowx: 在表格中的行数
+        :param style: 自定义style
         :param start_col: 初始的索引
         :return: Nones
         """
@@ -129,9 +138,35 @@ class Pyxl(object):
         for v in value:
             cell = self.get_cell(column_index=start_col, row_index=start_row)
             cell.value = v
+            start_col += 1
+
             if style:
                 cell.style = style
-            start_col += 1
+
+    def write_dict_to_row(self, _value: dict, style=None):
+        """
+        根据dict的索引,自动往表里填充数据
+        :param _value: 需要填入的值
+        :param style: 自定义style
+        :return: None
+        """
+        if not isinstance(_value, dict):
+            import traceback
+            traceback.print_exc()
+            raise ValueError('传入参数不是dict,请检查参数')
+        row_index = self.sheet.max_row + 1
+        for key, _value in _value.items():
+            try:
+                col_number = self.get_col_number_by_name(key)
+            except OverflowError as err:
+                # print(err)
+                 pass
+            else:
+                cell = self.get_cell(row_index=row_index,
+                                     column_index=col_number)
+                cell.value = _value
+                if style:
+                    cell.style = style
 
     def set_end_tag_index(self):
         self.end_tag_index = self.get_end_tag_index()

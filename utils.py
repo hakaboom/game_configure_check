@@ -6,6 +6,7 @@ def generate_result(column_name=None, row=None, value=None, message=""):
         value=value,
         row=row,
         message=message,
+        column_name=column_name
     )
 
 
