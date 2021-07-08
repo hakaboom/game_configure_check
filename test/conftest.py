@@ -18,6 +18,11 @@ def pytest_runtest_makereport(item, call):
         pass
         # allure.attach(, '失败截图', allure.attachment_type.PNG)
 
+
+@pytest.fixture(scope='')
+def error_message_excel():
+    pass
+
 # def pytest_configure(config):
 #     config._metadata = None
 #

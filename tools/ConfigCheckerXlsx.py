@@ -11,12 +11,11 @@ def check_null(check_dict: dict, xlsReader: XlsReader):
     ret_list = []
     for name, col_list in check_dict.items():
         # name在表格中对应列数
-        
+        col_number = xlsReader.get_col_number_by_name(name)
         for key, value in enumerate(col_list):
             if value is None:
                 row_number = key + 1 + xlsReader.ignore_lines
-                # err_message = "'第{col}列,第{row}行值为空".format(col=ncol_2_column(col_number), row=row_number)
-                err_message = "值为空"
+                err_message = "'第{col}列,第{row}行值为空".format(col=ncol_2_column(col_number), row=row_number)
                 logger.error(err_message)
                 ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
     return ret_list
@@ -34,7 +33,6 @@ def check_regex(check_dict: dict, xlsReader: XlsReader, regex):
     ret_list = []
     for name, col_list in check_dict.items():
         # name在表格中对应的列数
-        
         for key, value in enumerate(col_list):
             pattern = re.compile(regex)
             if pattern.search(str(value)) is None:
@@ -54,7 +52,6 @@ def check_range(check_dict: dict, xlsReader: XlsReader, rule):
     min_num, max_num = xls_float_correct(rule[0][0]), xls_float_correct(rule[0][2])
     for name, col_list in check_dict.items():
         # name在表格中对于的列数
-        
         for key, value in enumerate(col_list):
             if value:
                 num = xls_float_correct(value)
@@ -87,7 +84,6 @@ def check_reference(check_dict: dict, xlsReader: XlsReader, rule):
     target_list = target_table.get_col_list_by_name(target_name)
     target_list = [str(v) for v in target_list]
     for name, col_list in check_dict.items():
-        
         for key, value in enumerate(col_list):
             row_number = key + 1 + xlsReader.ignore_lines
             if not (str(value) in target_list):

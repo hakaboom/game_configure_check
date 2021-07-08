@@ -48,6 +48,19 @@ class XlsReader(object):
         """
         return self.sheet.cell_value(row_index - 1, column_index - 1)
 
+    def get_head_row_list(self) -> list:
+        return self.get_row_list(self.ignore_lines)
+
+    def get_head_col_name_list(self, blacklist: list = None) -> list:
+        ret = []
+        if blacklist and not isinstance(blacklist, list):
+            raise ValueError('blacklist must be list')
+        for name in self.get_head_row_list():
+            if name and name != '':
+                if blacklist and name not in blacklist:
+                    ret.append(name)
+        return ret
+
     def get_col_list_by_name(self, name: str) -> list:
         head_list = self.get_row_list(self.ignore_lines)
         index = head_list.index(name) + 1 if name in head_list else None

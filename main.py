@@ -9,19 +9,19 @@ allure generate {pytest生成的alluredir} -o {导出的目录}
 allure open {导出的目录} 
 """
 #
-a = CheckList()
-ret = a.run()
-
-
-a = Pyxl(file_name=REPORT_NAME, path=REPORT_PATH, init=True)
-a.ignore_lines = 1
-a.write_value_to_row(['table_name', 'column_name', 'row', 'value', 'message'], 1, style=xlStyle)
-
-for _ in ret:
-    table_name = _[0]
-    for ret_dict in _[1]:
-        ret_dict['table_name'] = table_name
-        a.write_dict_to_row(ret_dict, style=xlStyle)
-
-a.write_value_to_row(['表文件名', '列名', '对应行数', '单元格内参数', '错误信息'], 1, style=xlStyle)
-a.save()
+# a = CheckList()
+# ret = a.run()
+#
+#
+# a = Pyxl(file_name=REPORT_NAME, path=REPORT_PATH, init=True)
+# a.ignore_lines = 1
+# a.write_value_to_row(['table_name', 'column_name', 'row', 'value', 'message'], 1, style=xlStyle)
+#
+# for _ in ret:
+#     table_name = _[0]
+#     for ret_dict in _[1]:
+#         ret_dict['table_name'] = table_name
+#         a.write_dict_to_row(ret_dict, style=xlStyle)
+#
+# a.write_value_to_row(['表文件名', '列名', '对应行数', '单元格内参数', '错误信息'], 1, style=xlStyle)
+# a.save()

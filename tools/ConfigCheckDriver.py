@@ -44,7 +44,7 @@ class CheckList(XlsReader):
             configure_name = xlsReader_table.get_cell_value(1, 1)
 
             # 获取id列
-            column_name_list = [name for name in xlsReader_table.get_row_list(5) if name != '']
+            column_name_list = xlsReader_table.get_head_col_name_list()
             check_list = {}
 
             if table_column == 'ALL':
