@@ -1,7 +1,7 @@
 import pytest
-
+import re
 from tools.XlsReader import XlsReader
-from tools.ConfigCheckerXlsx import check_null
+from tools.ConfigCheckerXlsx import check_null, check_regex, check_reference
 import allure
 
 
@@ -34,3 +34,53 @@ class TestClass(object):
         text = ''.join([value.get('message') for value in ret])
         assert not ret
 
+    @allure.story('检查endTime')
+    @allure.title('endTime')
+    def test_col_endTime(self):
+        """ 检查 endTime列 """
+        ret_list = []
+        with allure.step('Step1：读取endTime列'):
+            check_dict = {
+                'endTime': self.list.get_col_list_by_name('endTime')
+            }
+        with allure.step('Step2：检查格式'):
+            ret = check_regex(check_dict=check_dict, xlsReader=self.list, regex=r'^-?\d+\.?\d*$')
+            ret_list.append(ret)
+            assert not ret
+        text = ''.join([value.get('message') for value in ret])
+
+    @allure.story('检查ratioPassenger')
+    @allure.title('ratioPassenger')
+    def test_col_ratioPassenger(self):
+        """ 检查 ratioPassenger列 """
+        ret_list = []
+        with allure.step('Step1：读取表格对应列'):
+            check_dict = {
+                'ratioPassenger': self.list.get_col_list_by_name('ratioPassenger')
+            }
+        with allure.step('Step2：检查格式'):
+            # 纯数字
+            ret = check_regex(check_dict=check_dict, xlsReader=self.list, regex=r'^-?\d+\.?\d*$')
+            ret_list.append(ret)
+            assert not ret
+
+    @allure.story('检查rangePassengerList')
+    @allure.title('rangePassengerList')
+    def test_col_rangePassengerList(self):
+        """ 检查 rangePassengerList列 """
+        ret_list = []
+        with allure.step('Step1：读取表格对应列'):
+            check_dict = {
+                'rangePassengerList': self.list.get_col_list_by_name('rangePassengerList')
+            }
+        with allure.step('Step2：检查格式'):
+            # 类型ID，概率|类型ID，概率
+            ret = check_regex(check_dict=check_dict, xlsReader=self.list, regex=r'^(-?(\d+,){1}-?(\d+)+\|?)+(?<=\d)$')
+            ret_list.append(ret)
+            assert not ret
+        with allure.step('Step3：检查类型是否在C_固定乘客表'):
+            patter = re.compile(r'(-?\d+){1},(-?\d+)+\|?')
+            col_list = self.list.get_col_list_by_name('rangePassengerList')
+            for index in enumerate(col_list):
+                value = col_list.index(index)
+            # check_reference(check_dict=passengetList, xlsReader=self.list, rule='C_固定乘客表（已确认）.xls:systemPassengerId')

@@ -1,7 +1,7 @@
 import os
 
 
-WORK_PATH = "D:\\work\\TieDaoWuYu\\数据表-1.0整合"  # 工作路径
+WORK_PATH = "D:\\TieDaoWuYu\\数据表-1.0整合"  # 工作路径
 # WORK_PATH = os.path.realpath('table')  # 工作路径
 REPORT_NAME = '检查结果.xlsx'  # 返回检查结果表格的文件名
 REPORT_PATH = os.path.realpath('table')  # 返回检查结果表格的路径

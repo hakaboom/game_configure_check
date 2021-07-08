@@ -15,8 +15,10 @@ def check_null(check_dict: dict, xlsReader: XlsReader):
         for key, value in enumerate(col_list):
             if value is None:
                 row_number = key + 1 + xlsReader.ignore_lines
-                err_message = "'第{col}列,第{row}行值为空".format(col=ncol_2_column(col_number), row=row_number)
-                logger.error(err_message)
+                err_message = "'值为空".format(col=ncol_2_column(col_number), row=row_number)
+                logger.error("'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为空".format(
+                                xls_name=xlsReader.xls_name, name=name,
+                                col=ncol_2_column(col_number), row=row_number))
                 ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
     return ret_list
 
@@ -33,12 +35,16 @@ def check_regex(check_dict: dict, xlsReader: XlsReader, regex):
     ret_list = []
     for name, col_list in check_dict.items():
         # name在表格中对应的列数
+        col_number = xlsReader.get_col_number_by_name(name)
         for key, value in enumerate(col_list):
             pattern = re.compile(regex)
             if pattern.search(str(value)) is None:
                 row_number = key + 1 + xlsReader.ignore_lines
                 err_message = "格式不符合规则"
-                logger.error(err_message)
+                logger.error("'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为'{value}' 不符合要求".format(
+                    xls_name=xlsReader.xls_name, name=name,
+                    col=ncol_2_column(col_number), row=row_number,
+                    value=value))
                 ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
     return ret_list
 
@@ -87,10 +93,30 @@ def check_reference(check_dict: dict, xlsReader: XlsReader, rule):
         for key, value in enumerate(col_list):
             row_number = key + 1 + xlsReader.ignore_lines
             if not (str(value) in target_list):
-                err_message = "未能在{target_xls_name}的{target_name}列找到值".format(
+                err_message = "未能在{target_xls_name}的{target_name}列找到对应索引{value}".format(
                     value=value, target_xls_name=target_table.xls_name, target_name=target_name
                 )
                 logger.error(err_message)
                 ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
 
     return ret_list
+
+
+class CheckReference(object):
+    """
+    一个检查索引的类
+    类型ID，概率|类型ID，概率
+    """
+    def __init__(self, xlsReader: XlsReader, regex, regex_report: list):
+        """
+        :param xlsReader: 原表
+        :param regex: 正则
+        :param regex_report: 正则分割后的结果
+        """
+        self.xl = xlsReader
+        self.regex = regex
+        self.regex_report = regex_report
+
+    def handle_list(self, name):
+        col_list = self.xl.get_col_list_by_name(name)
+        print(col_list)
