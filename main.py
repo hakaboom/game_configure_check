@@ -21,11 +21,10 @@ if __name__ == '__main__':
 
     # xl =
     # patter = re.compile(r'(-?\d+){1},(-?\d+)+\|?')
-    # col_list = xl.get_col_list_by_name('rangePassengerList')
-    # for key, value in enumerate(col_list):
-    #     table = {'id': [], 'probability': []}
-    #     for s in patter.findall(value):
-    #         table['id'].append(s[0])
-    #         table['probability'].append(value[1])
-    a = CheckReference(XlsReader(xls_name='B_班次类型表(已确认).xls'), r'(-?\d+){1},(-?\d+)+\|?', ['id', 'probability'])
+
+    xl = XlsReader(xls_name='B_班次类型表(已确认).xls')
+    a = CheckReference(xl, r'(-?\d+){1},(-?\d+)+\|?', ['id', 'probability'])
     a.handle_list('rangePassengerList')
+    # a.check_reference(dict(id=['C_随机乘客模板表（已确认）.xls', 'systemPassengerTemplateId']))
+    # pprint(a.get_list_by_name('id'))
+    a.test_check_reference('id', 'C_随机乘客模板表（已确认）.xls;systemPassengerTemplateId')
