@@ -15,14 +15,8 @@ allure generate {pytest生成的alluredir} -o {导出的目录}
 allure open {导出的目录} 
 """
 
-a = [
-    {'row': 0, 'value': 1, 'message': '哈哈哈'},
-    {'value': 2, 'row': 1, 'message': '哔哔哔'},
-]
-print(list(a[0].values()))
 
-
-if __name__ == '11__main__':
+if __name__ == '__main__':
     report_path = os.path.realpath('report')
     allure_path = os.path.realpath('allure-report')
 

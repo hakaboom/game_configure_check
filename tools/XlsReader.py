@@ -53,11 +53,13 @@ class XlsReader(object):
 
     def get_head_col_name_list(self, blacklist: list = None) -> list:
         ret = []
-        if blacklist and not isinstance(blacklist, list):
-            raise ValueError('blacklist must be list')
+        # if blacklist and not isinstance(blacklist, list):
+        #     raise ValueError('blacklist must be list')
         for name in self.get_head_row_list():
             if name and name != '':
-                if blacklist and name not in blacklist:
+                if isinstance(blacklist, list) and name in blacklist:
+                    pass
+                else:
                     ret.append(name)
         return ret
 

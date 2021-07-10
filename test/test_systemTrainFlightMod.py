@@ -3,77 +3,83 @@ import re
 from loguru import logger
 from tools.XlsReader import XlsReader
 from .conftest import excel_assert
-from tools.ConfigCheckerXlsx import check_null, check_regex, check_reference, CheckReference
+from tools.ConfigCheckerXlsx import check_null, check_regex, check_reference, CheckReference, check_range
 import allure
 
+param = [
+    ('B_班次类型表(已确认).xls', '检查是否有空值', 'ALL',
+     dict(action='check_null', blacklist=['fixedPassengerList', 'eventList'])),
+    ('B_班次类型表(已确认).xls', '检查endTime', 'endTime',
+     dict(action='check_regex', args=r'^-?\d+\.?\d*$')),
+    ('B_班次类型表(已确认).xls', '检查ratioPassenger', 'ratioPassenger',
+     dict(action='check_regex', args=r'^-?\d+\.?\d*$')),
+    ('B_班次类型表(已确认).xls', '检查ratioPassenger', 'rangePassengerList',
+     dict(action='check_reference', format=[r'(-?\d+){1},(-?\d+)+\|?', ['id', 'probability']],
+          args=['id', 'C_随机乘客模板表（已确认）.xls;systemPassengerTemplateId'])),
+]
 
-@allure.feature("列车班次生成表")
+
 class TestClass(object):
     @allure.title('初始化')
     def setup_class(self):
         self.xls_name = 'B_班次类型表(已确认).xls'
         with allure.step('Step: 读取表格'):
             try:
-                self.list = XlsReader(xls_name=self.xls_name)
+                self.xl = XlsReader(xls_name=self.xls_name)
             except FileNotFoundError as e:
                 allure.attach("读取表格", "没有找到表:{}, 请检查表名".format(self.xls_name))
                 raise e
         allure.attach(self.xls_name, "读取")
 
-    @allure.story('检查是否有空值')
-    @allure.title('ALL')
-    def test_check_all_null(self):
-        """ 检查所有参数是否有空值 """
-        with allure.step('Step1: 读取表格对应列'):
-            blacklist = ['fixedPassengerList', 'eventList']
-            column_name_list = self.list.get_head_col_name_list(blacklist)
+    @staticmethod
+    def action_run(action, check_dict, xlsReader, args=None):
+        if action == 'check_null':
+            ret = check_null(check_dict, xlsReader=xlsReader)
+        elif action == 'check_regex':
+            ret = check_regex(check_dict, xlsReader=xlsReader, regex=args)
+        elif action == 'check_range':
+            ret = check_range(check_dict, xlsReader=xlsReader, rule=args)
+        elif action == 'check_reference':
+            ret = check_reference(check_dict, xlsReader=xlsReader, rule=args)
+        else:
+            raise ValueError('未知action参数 action={}'.format(action))
+        return ret
+
+    @allure.feature('配置表检查')
+    @allure.title("{table_name};{story}")
+    @pytest.mark.parametrize('table_name,story,col_name,case', param)
+    def test_ttt(self, table_name, story, col_name, case):
+        with allure.step('Step1: 读取表格数据'):
+            blacklist = case.get('blacklist')
             check_dict = {}
-            for name in column_name_list:
-                check_dict[name] = self.list.get_col_list_by_name(name)
-        with allure.step('Step2: 检查是否为空'):
-            ret = check_null(check_dict=check_dict, xlsReader=self.list)
-            excel_assert(ret, self.xls_name)
+            column_head_name_list = self.xl.get_head_col_name_list(blacklist)
+            if col_name == 'ALL':
+                for name in column_head_name_list:
+                    check_dict[name] = self.xl.get_col_list_by_name(name)
+            elif col_name in column_head_name_list:
+                check_dict[col_name] = self.xl.get_col_list_by_name(col_name)
+            else:
+                raise ValueError(f"未能寻找到对应列名'{col_name}'", column_head_name_list)
 
-    @allure.story('检查endTime')
-    @allure.title('endTime')
-    def test_col_endTime(self):
-        """ 检查 endTime列 """
-        with allure.step('Step1：读取endTime列'):
-            check_dict = {
-                'endTime': self.list.get_col_list_by_name('endTime')
-            }
-        with allure.step('Step2：检查格式'):
-            ret = check_regex(check_dict=check_dict, xlsReader=self.list, regex=r'^-?\d+\.?\d*$')
-            excel_assert(ret, self.xls_name)
+        with allure.step('Step2：检查action是否正确'):
+            action = case.get('action')
+            if action not in ['check_null', 'check_regex', 'check_range', 'check_reference']:
+                raise ValueError(f'action 填写错误 {action}:(check_null/check_regex/check_range/check_reference)')
 
-    @allure.story('检查ratioPassenger')
-    @allure.title('ratioPassenger')
-    def test_col_ratioPassenger(self):
-        """ 检查 ratioPassenger列 """
-        with allure.step('Step1：读取表格对应列'):
-            check_dict = {
-                'ratioPassenger': self.list.get_col_list_by_name('ratioPassenger')
-            }
-        with allure.step('Step2：检查格式'):
-            # 纯数字
-            ret = check_regex(check_dict=check_dict, xlsReader=self.list, regex=r'^-?\d+\.?\d*$')
-            excel_assert(ret, self.xls_name)
+        with allure.step('Step3：预处理表格数据'):
+            if case.get('format') and col_name != 'ALL':
+                xlformat = case.get('format')
+                check = CheckReference(self.xls_name)
+                check.handle_list(col_name, xlformat[0], xlformat[1])
+            elif case.get('format') and col_name == 'ALL':
+                raise ValueError('title为ALL时, 不能指定format参数')
 
-    @allure.story('检查rangePassengerList')
-    @allure.title('rangePassengerList')
-    def test_col_rangePassengerList(self):
-        """ 检查 rangePassengerList列 """
-        with allure.step('Step1：读取表格对应列'):
-            check_dict = {
-                'rangePassengerList': self.list.get_col_list_by_name('rangePassengerList')
-            }
-        with allure.step('Step2：检查格式'):
-            # 类型ID，概率|类型ID，概率
-            ret = check_regex(check_dict=check_dict, xlsReader=self.list, regex=r'^(-?(\d+,){1}-?(\d+)+\|?)+(?<=\d)$')
+        with allure.step(f"Step3：执行'{action}'检查"):
+            args = case.get('args')
+            if case.get('format'):
+                if action == 'check_reference':
+                    ret = check.check_reference(*args)
+            else:
+                ret = TestClass.action_run(action, check_dict=check_dict, xlsReader=self.xl,
+                                           args=args)
             excel_assert(ret, self.xls_name)
-        with allure.step('Step3：检查类型ID是否存在于C_固定乘客表'):
-            check = CheckReference(self.xls_name)
-            check.handle_list('rangePassengerList', r'(-?\d+){1},(-?\d+)+\|?', ['id', 'probability'])
-            ret = check.check_reference('id', 'C_随机乘客模板表（已确认）.xls;systemPassengerTemplateId')
-            excel_assert(ret, self.xls_name)
-

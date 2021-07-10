@@ -38,6 +38,5 @@ def excel_assert(ret, table_name):
         if not isinstance(EXCEL_ERROR.get(table_name), list):
             EXCEL_ERROR[table_name] = []
         EXCEL_ERROR[table_name].append(ret)
-        pprint(ret)
-        assert not ret
+        assert not ret, '\n检测到错误'
 
