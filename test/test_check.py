@@ -5,31 +5,23 @@ from tools.XlsReader import XlsReader
 from .conftest import excel_assert
 from tools.ConfigCheckerXlsx import check_null, check_regex, check_reference, CheckReference, check_range
 import allure
+from .config import CheckList, LoadAllExcel
 
-param = [
-    ('B_班次类型表(已确认).xls', '检查是否有空值', 'ALL',
-     dict(action='check_null', blacklist=['fixedPassengerList', 'eventList'])),
-    ('B_班次类型表(已确认).xls', '检查endTime', 'endTime',
-     dict(action='check_regex', args=r'^-?\d+\.?\d*$')),
-    ('B_班次类型表(已确认).xls', '检查ratioPassenger', 'ratioPassenger',
-     dict(action='check_regex', args=r'^-?\d+\.?\d*$')),
-    ('B_班次类型表(已确认).xls', '检查ratioPassenger', 'rangePassengerList',
-     dict(action='check_reference', format=[r'(-?\d+){1},(-?\d+)+\|?', ['id', 'probability']],
-          args=['id', 'C_随机乘客模板表（已确认）.xls;systemPassengerTemplateId'])),
-]
+
+AllExcel = LoadAllExcel()
 
 
 class TestClass(object):
-    @allure.title('初始化')
-    def setup_class(self):
-        self.xls_name = 'B_班次类型表(已确认).xls'
-        with allure.step('Step: 读取表格'):
-            try:
-                self.xl = XlsReader(xls_name=self.xls_name)
-            except FileNotFoundError as e:
-                allure.attach("读取表格", "没有找到表:{}, 请检查表名".format(self.xls_name))
-                raise e
-        allure.attach(self.xls_name, "读取")
+    # @allure.title('初始化')
+    # def setup_class(self):
+    #     self.xls_name = 'B_班次类型表(已确认).xls'
+    #     with allure.step('Step: 读取表格'):
+    #         try:
+    #             self.xl = XlsReader(xls_name=self.xls_name)
+    #         except FileNotFoundError as e:
+    #             allure.attach("读取表格", "没有找到表:{}, 请检查表名".format(self.xls_name))
+    #             raise e
+    #     allure.attach(self.xls_name, "读取")
 
     @staticmethod
     def action_run(action, check_dict, xlsReader, args=None):
@@ -47,17 +39,18 @@ class TestClass(object):
 
     @allure.feature('配置表检查')
     @allure.title("{table_name};{story}")
-    @pytest.mark.parametrize('table_name,story,col_name,case', param)
+    @pytest.mark.parametrize('table_name,story,col_name,case', CheckList().check_list)
     def test_ttt(self, table_name, story, col_name, case):
+        xl = AllExcel.get_xl_by_name(table_name)
         with allure.step('Step1: 读取表格数据'):
             blacklist = case.get('blacklist')
             check_dict = {}
-            column_head_name_list = self.xl.get_head_col_name_list(blacklist)
+            column_head_name_list = xl.get_head_col_name_list(blacklist)
             if col_name == 'ALL':
                 for name in column_head_name_list:
-                    check_dict[name] = self.xl.get_col_list_by_name(name)
+                    check_dict[name] = xl.get_col_list_by_name(name)
             elif col_name in column_head_name_list:
-                check_dict[col_name] = self.xl.get_col_list_by_name(col_name)
+                check_dict[col_name] = xl.get_col_list_by_name(col_name)
             else:
                 raise ValueError(f"未能寻找到对应列名'{col_name}'", column_head_name_list)
 
@@ -69,7 +62,7 @@ class TestClass(object):
         with allure.step('Step3：预处理表格数据'):
             if case.get('format') and col_name != 'ALL':
                 xlformat = case.get('format')
-                check = CheckReference(self.xls_name)
+                check = CheckReference(table_name)
                 check.handle_list(col_name, xlformat[0], xlformat[1])
             elif case.get('format') and col_name == 'ALL':
                 raise ValueError('title为ALL时, 不能指定format参数')
@@ -80,6 +73,6 @@ class TestClass(object):
                 if action == 'check_reference':
                     ret = check.check_reference(*args)
             else:
-                ret = TestClass.action_run(action, check_dict=check_dict, xlsReader=self.xl,
+                ret = TestClass.action_run(action, check_dict=check_dict, xlsReader=xl,
                                            args=args)
-            excel_assert(ret, self.xls_name)
+            excel_assert(ret, table_name)

@@ -100,10 +100,7 @@ def check_reference(check_dict: dict, xlsReader: XlsReader, rule):
 
 
 class CheckReference(object):
-    """
-    一个检查索引的类
-    类型ID，概率|类型ID，概率
-    """
+    """ 预先处理表数据后进行检查 """
     def __init__(self, xls_name: str):
         """
         例如数据为 100,10|200,20

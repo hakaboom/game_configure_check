@@ -4,7 +4,7 @@ from openpyxl.utils import get_column_letter
 
 
 class Pyxl(object):
-    def __init__(self, file_name, path='', init: bool=True):
+    def __init__(self, file_name, path='', init: bool = True):
         """
         初始化实例
         :param file_name: 表格名称
@@ -68,6 +68,9 @@ class Pyxl(object):
         :return: 这一个单元格内的数据
         """
         return self.get_cell(row_index, column_index).value
+
+    def get_head_row_list(self) -> list:
+        return self.get_row_value_list(self.ignore_lines)
 
     def get_col_list_by_name(self, name: str) -> list:
         head_list = self.get_row_value_list(self.ignore_lines)

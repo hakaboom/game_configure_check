@@ -23,20 +23,17 @@ def pytest_runtest_makereport(item, call):
 EXCEL_ERROR = {}
 
 
-def print_excel_assert_error(ret):
-    """ 用于将配置表返回的错误, 格式化输出 """
-    table = []
-
-
-def excel_assert(ret, table_name):
+def excel_assert(ret, tableName):
     """
     用于处理检查配置表返回的错误
     :param ret:
     :return: None
     """
     if ret:
-        if not isinstance(EXCEL_ERROR.get(table_name), list):
-            EXCEL_ERROR[table_name] = []
-        EXCEL_ERROR[table_name].append(ret)
-        assert not ret, '\n检测到错误'
+        if not isinstance(EXCEL_ERROR.get(tableName), list):
+            EXCEL_ERROR[tableName] = []
+        EXCEL_ERROR[tableName].append(ret)
+        error_message = '\n'.join([f"第{value['row']}行,列名:{value['column_name']},值:{value['value']},{value['message']}"
+                                  for value in ret])
+        assert not ret, f'{tableName}\n{error_message}'
 

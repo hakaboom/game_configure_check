@@ -1,13 +1,13 @@
 import os
 import re
+
 import pytest
-from tools.XlsReader import XlsReader
-from tools.ConfigCheckerXlsx import check_reference, CheckReference
 from tools.pyxl import Pyxl
 from tools.style import xlStyle
 from utils import pprint
 from test.conftest import EXCEL_ERROR
 from setting import REPORT_PATH, REPORT_NAME
+from test.config import LoadAllExcel
 """  本框架里所有表格相关的索引数值均从1开始计算 """
 """ 
 pytest {test目录} --alluredir {导出的目录}
