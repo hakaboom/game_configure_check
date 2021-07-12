@@ -11,8 +11,9 @@ class Pyxl(object):
         :param path: 表格路径
         :param init: False将会读取已有的表, True将会创建新的表s
         """
-        self.xls_name = file_name
-        self.path = path
+        self.xlsx_name = file_name
+        self.work_path = path
+        self.xlsx_path = os.path.join(self.work_path, self.xlsx_name)
         self.wb = self.init_workbook(init)
         self.sheet = self.wb.active
         self.ignore_lines = 5  # 获取数据时,跳过不会读取的行
@@ -20,7 +21,7 @@ class Pyxl(object):
         self.set_end_tag_index()
 
     def init_workbook(self, flags):
-        path = os.path.join(self.path, self.xls_name)
+        path = os.path.join(self.work_path, self.xlsx_name)
         try:
             open(path, 'r')
         except FileNotFoundError:
@@ -78,7 +79,7 @@ class Pyxl(object):
         if index:
             return self.get_col_value_list(index)[self.ignore_lines:]
         else:
-            raise OverflowError('{xlsName}没有{name}列'.format(xlsName=self.xls_name, name=name))
+            raise OverflowError('{xlsName}没有{name}列'.format(xlsName=self.xlsx_name, name=name))
 
     def get_col_number_by_name(self, name: str) -> int:
         head_list = self.get_row_value_list(self.ignore_lines)
@@ -86,7 +87,7 @@ class Pyxl(object):
         if index:
             return index
         else:
-            raise OverflowError('{xlsName}没有{name}列'.format(xlsName=self.xls_name, name=name))
+            raise OverflowError('{xlsName}没有{name}列'.format(xlsName=self.xlsx_name, name=name))
 
     def write_value_in_cell(self, value, row_index: int, column_index: int, style=None):
         """
@@ -185,4 +186,19 @@ class Pyxl(object):
             return end_tag_index
 
     def save(self):
-        self.wb.save(os.path.join(self.path, self.xls_name))
+        self.wb.save(os.path.join(self.work_path, self.xlsx_name))
+
+    def if_condition(self):
+        """
+        判断当前excel是否可以读写
+        :return:
+        """
+        if os.access(self.xlsx_path, os.X_OK):
+            try:
+                self.save()
+                closed = True
+            except PermissionError:
+                closed = False
+            return closed
+
+

@@ -3,12 +3,13 @@ import re
 from loguru import logger
 from tools.XlsReader import XlsReader
 from .conftest import excel_assert
-from tools.ConfigCheckerXlsx import check_null, check_regex, check_reference, CheckReference, check_range
+from tools.check_methods import check_null, check_regex, check_reference, CheckReference, check_range
 import allure
 from .config import CheckList, LoadAllExcel
 
 
 AllExcel = LoadAllExcel()
+checkList = CheckList()
 
 
 class TestClass(object):
@@ -39,7 +40,7 @@ class TestClass(object):
 
     @allure.feature('配置表检查')
     @allure.title("{table_name};{story}")
-    @pytest.mark.parametrize('table_name,story,col_name,case', CheckList().check_list)
+    @pytest.mark.parametrize('table_name,story,col_name,case', checkList.check_list)
     def test_ttt(self, table_name, story, col_name, case):
         xl = AllExcel.get_xl_by_name(table_name)
         with allure.step('Step1: 读取表格数据'):

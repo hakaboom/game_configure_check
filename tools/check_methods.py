@@ -8,17 +8,17 @@ from loguru import logger
 def check_null(check_dict: dict, xlsReader: XlsReader):
     """ 检查列表内有无空数据 """
     ret_list = []
-    for name, col_list in check_dict.items():
+    for col_name, col_list in check_dict.items():
         # name在表格中对应列数
-        col_number = xlsReader.get_col_number_by_name(name)
+        col_number = xlsReader.get_col_number_by_name(col_name)
         for key, value in enumerate(col_list):
             if value is None:
                 row_number = key + 1 + xlsReader.ignore_lines
                 err_message = "值为空".format(col=ncol_2_column(col_number), row=row_number)
                 logger.error("'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为空".format(
-                                xls_name=xlsReader.xls_name, name=name,
+                                xls_name=xlsReader.xls_name, name=col_name,
                                 col=ncol_2_column(col_number), row=row_number))
-                ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
+                ret_list.append(generate_result(column_name=col_name, row=row_number, message=err_message, value=value))
     return ret_list
 
 
@@ -32,19 +32,19 @@ def check_null(check_dict: dict, xlsReader: XlsReader):
 def check_regex(check_dict: dict, xlsReader: XlsReader, regex):
     """ 检查数据有无格式错误 """
     ret_list = []
-    for name, col_list in check_dict.items():
+    for col_name, col_list in check_dict.items():
         # name在表格中对应的列数
-        col_number = xlsReader.get_col_number_by_name(name)
+        col_number = xlsReader.get_col_number_by_name(col_name)
         for key, value in enumerate(col_list):
             pattern = re.compile(regex)
             if pattern.search(str(value)) is None:
                 row_number = key + 1 + xlsReader.ignore_lines
                 err_message = "格式不符合规则"
                 logger.error("'{xls_name}'中：{name}属性, 第{col}列,第{row}行值为'{value}' 不符合要求".format(
-                    xls_name=xlsReader.xls_name, name=name,
+                    xls_name=xlsReader.xls_name, name=col_name,
                     col=ncol_2_column(col_number), row=row_number,
                     value=value))
-                ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
+                ret_list.append(generate_result(column_name=col_name, row=row_number, message=err_message, value=value))
     return ret_list
 
 
@@ -55,7 +55,7 @@ def check_range(check_dict: dict, xlsReader: XlsReader, rule):
         raise ValueError('rule错误无法解析 value={}'.format(rule))
 
     min_num, max_num = xls_float_correct(rule[0][0]), xls_float_correct(rule[0][2])
-    for name, col_list in check_dict.items():
+    for col_name, col_list in check_dict.items():
         # name在表格中对于的列数
         for key, value in enumerate(col_list):
             if value:
@@ -64,11 +64,11 @@ def check_range(check_dict: dict, xlsReader: XlsReader, rule):
                 if num <= min_num:
                     err_message = f'小于最低要求{min_num}'
                     logger.error(err_message)
-                    ret_list.append(generate_result(column_name=name, row=row_number, message=err_message))
+                    ret_list.append(generate_result(column_name=col_name, row=row_number, message=err_message))
                 elif num >= max_num:
                     err_message = f'大于最大要求{max_num}'
                     logger.error(err_message)
-                    ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
+                    ret_list.append(generate_result(column_name=col_name, row=row_number, message=err_message, value=value))
 
     return ret_list
 
@@ -88,13 +88,13 @@ def check_reference(check_dict: dict, xlsReader: XlsReader, rule):
     target_table = XlsReader(target_table_name)
     target_list = target_table.get_col_list_by_name(target_name)
     target_list = [str(v) for v in target_list]
-    for name, col_list in check_dict.items():
+    for col_name, col_list in check_dict.items():
         for key, value in enumerate(col_list):
             row_number = key + 1 + xlsReader.ignore_lines
             if not (str(value) in target_list):
                 err_message = f"未找到{value}. 查找表:{target_table.xls_name},列{target_name}"
                 logger.error(err_message)
-                ret_list.append(generate_result(column_name=name, row=row_number, message=err_message, value=value))
+                ret_list.append(generate_result(column_name=col_name, row=row_number, message=err_message, value=value))
 
     return ret_list
 

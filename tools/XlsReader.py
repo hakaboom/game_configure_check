@@ -8,11 +8,12 @@ from setting import WORK_PATH
 
 class XlsReader(object):
     def __init__(self, xls_name, path=WORK_PATH):
-        self.path = path
+        self.work_path = path
         self.xls_name = xls_name
+        self.xls_path = os.path.join(self.work_path, self.xls_name)
         self.ignore_lines = 5  # 获取数据时,跳过不会读取的行
 
-        self.xl = open_workbook(os.path.join(self.path, xls_name))
+        self.xl = open_workbook(self.xls_path)
         self.sheet = self.xl.sheet_by_index(0)
         self.end_tag_index = self.sheet.nrows
         self.set_end_tag_index()
